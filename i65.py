@@ -270,7 +270,7 @@ OP_MODE_EXAMPLES={
     "IAX":   "($1234,X)",
     "IMMED": "#$34",
     "IMP":   "",
-    "IND":   "($34)",
+    "IND":   "($1234)",
     "IZX":    "($34,X)",
     "IZY":    "($34),Y",
     "IZP":   "($34)",
@@ -325,28 +325,27 @@ def InteractiveModeBody(screen):
     op_names.sort()
     while(True):
         screen.clear() 
-        #Don't draw partial matches if no input
-        if input_str!="":
-            matches=[name for name in op_names if input_str in name]
-            if len(matches)==1:
-                #Draw instruction info
-                match=matches[0]
-                max_y,max_x=screen.getmaxyx()
-                draw_y=IMODE_DRAW_Y
-                for i,instruction in enumerate(OP_INFO_NAME[match]):
-                    DisplayOpCurses(instruction[0],screen,draw_y)
-                    draw_y+=1
-                    if draw_y==max_y-1:
-                        #If no room left and not last item, notify that instructions left 
-                        if i!=len(OP_INFO_NAME[match])-1:
-                            screen.addstr(draw_y,draw_x,"("+str(len(OP_INFO_NAME[match])-i-1)+" more instructions)")
-                            break
-            elif len(matches)>1:
-                #Draw partial matches
-                max_y,max_x=screen.getmaxyx()
-                draw_y=IMODE_DRAW_Y
-                draw_x=IMODE_DRAW_X
-                for name in matches:
+        matches=[name for name in op_names if input_str in name]
+        if len(matches)==1:
+            #Draw instruction info
+            match=matches[0]
+            max_y,max_x=screen.getmaxyx()
+            draw_y=IMODE_DRAW_Y
+            for i,instruction in enumerate(OP_INFO_NAME[match]):
+                DisplayOpCurses(instruction[0],screen,draw_y)
+                draw_y+=1
+                if draw_y==max_y-1:
+                    #If no room left and not last item, notify that instructions left 
+                    if i!=len(OP_INFO_NAME[match])-1:
+                        screen.addstr(draw_y,draw_x,"("+str(len(OP_INFO_NAME[match])-i-1)+" more instructions)")
+                        break
+        elif len(matches)>1:
+            #Draw partial matches
+            max_y,max_x=screen.getmaxyx()
+            draw_y=IMODE_DRAW_Y
+            draw_x=IMODE_DRAW_X
+            for name in matches:
+                if input_str!="":
                     index=0
                     while index<len(name):
                         if name[index:index+len(input_str)]==input_str:
@@ -355,11 +354,14 @@ def InteractiveModeBody(screen):
                         else:
                             screen.addstr(draw_y,draw_x+index,name[index])
                             index+=1
+                else:
+                    screen.addstr(draw_y,draw_x,name)
+                    
 
-                    draw_y+=1
-                    if draw_y==max_y-1:
-                        draw_y=IMODE_DRAW_Y
-                        draw_x+=IMODE_DRAW_WIDTH
+                draw_y+=1
+                if draw_y==max_y-1:
+                    draw_y=IMODE_DRAW_Y
+                    draw_x+=IMODE_DRAW_WIDTH
 
         #Draw input line last so cursor is visible    
         screen.addstr(0,0,"> "+input_str)
@@ -406,9 +408,11 @@ def DisplayOp(op_code):
         return
     else:
         info=OP_INFO[op_code]
-        printc(info[INDEX_NAME]+" ",COLOR_NAME)
-        op_spacing=4-len(info[INDEX_NAME])
-        printc(OP_MODE_EXAMPLES[info[INDEX_MODE]],width=MAX_INSTRUCTION_LEN+op_spacing)
+        name=info[INDEX_NAME]
+        printc(name+" ",COLOR_NAME)
+        op_spacing=4-len(name)
+        example=OP_MODE_EXAMPLES[info[INDEX_MODE]]
+        printc(example,width=MAX_INSTRUCTION_LEN+op_spacing)
     #Addressing mode
     printc(info[INDEX_MODE],width=MAX_MODE_LEN)
     #Size
